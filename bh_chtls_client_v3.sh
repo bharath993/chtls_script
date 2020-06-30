@@ -1,14 +1,14 @@
 remote_interface="ens2f4"
 ip="102.1.7.149"
 server_machine="t6p3"
-path_to_openssl="/mnt/git-openssl-chtls-16/bin/"
+path_to_openssl="/root/compiled-openssl-1.1.1/bin/"
 file_path="/DATA/1G_sample"
 
 #Function to run openssl_s_time
 openssl_time()
 {
 #	echo "inside is $i"
- $path_to_openssl./openssl s_time -connect $ip:88$1  -www $file_path -new > /dev/null &
+ $path_to_openssl./openssl s_time -connect $ip:88$1  -www $file_path -new  > /dev/null &
 }
 
 #Function to collect BW with cee tool
@@ -23,7 +23,6 @@ ssh $server_machine /root/t5tools/./cee.pl -i $remote_interface -ch 0 -c 32 > ./
 collect_BW_vnstat()
 {
 ssh $server_machine  vnstat -i $remote_interface -tr 30 > vnstat_output.txt
-
 }
 
 
@@ -32,7 +31,6 @@ collect_cpu()
 {
 ssh $server_machine mpstat 3 10 > ./server_cpustat.txt &
 mpstat 3 10 > ./client_cpustat.txt & 
-
 }
 
 #Function to extract cpu util from collected data
@@ -62,11 +60,13 @@ echo "-------Total BW----:  $BW $par" | tee -a ./cee_output.txt
 
 
 #main
-killall -q openssl
 rm -rf server_cpustat.txt vnstat_output.txt cee_output.txt
+killall -q openssl
 #no. of instances to run
 for j in 1 8 16 32 64 128 256 450 
 do
+echo "Waiting for openssl to complete"
+wait
 	echo "###################instance $j#########################################" | tee -a  ./cee_output.txt
 	for (( i=0; i < $j ; i++ ))  
 do
